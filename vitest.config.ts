@@ -6,6 +6,7 @@ export default defineConfig({
   define: { "process.env.JEST_WORKER_ID": "undefined" },
   resolve: { alias: { "react-native": "react-native-web" } },
   test: {
+    include: ["test/**/*.test.ts"],
     testTimeout: 3000,
     browser: {
       enabled: true,

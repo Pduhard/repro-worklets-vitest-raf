@@ -11,10 +11,11 @@ Every frame in the page becomes a `setTimeout`, so a test that fakes `setTimeout
 
 ```sh
 pnpm install
-pnpm test
+pnpm test        # Vitest browser mode (Playwright, Chromium)
+pnpm test:jest   # what Jest gives a module
 ```
 
-`test/raf.test.ts`, Vitest 5 browser mode (Playwright, Chromium), no React Native, no Reanimated:
+`test/raf.test.ts`, no React Native, no Reanimated:
 
 | | 0.10.4 | 0.11.0 | 0.13.0 | 0.13.0 + fix |
 |---|---|---|---|---|
@@ -22,14 +23,22 @@ pnpm test
 | importing worklets keeps the browser's `requestAnimationFrame` | ✓ | ✗ `mockedRequestAnimationFrame` | ✗ | ✓ |
 | a frame still comes once `setTimeout` is faked | ✓ | ✗ times out | ✗ times out | ✓ |
 
-- Other versions: `pnpm add -D react-native-worklets@0.10.4 && pnpm test`
-- The fix: branch [`with-fix`](../../tree/with-fix), a one-line patch:
+Other versions: `pnpm add -D react-native-worklets@0.10.4 && pnpm test`.
+
+## Fix
+
+Branch [`with-fix`](../../tree/with-fix), a one-line patch:
 
 ```diff
- export const IS_JEST: boolean =
+-export const IS_JEST: boolean =
 -  typeof globalThis.jest !== 'undefined' || process.env.NODE_ENV === 'test';
-+  typeof globalThis.jest !== 'undefined';
++export const IS_JEST: boolean = typeof jest !== 'undefined';
 ```
+
+Why the bare `jest`: Jest hands each module a `jest` in its scope, not on `globalThis` (`pnpm test:jest`, `jest/globals.test.cjs`).
+So under Jest `typeof globalThis.jest` is `'undefined'`, and only `NODE_ENV === 'test'` detects it today.
+The bare `jest` is set under Jest, is not a `process.env` value a bundler could inline ([#9703](https://github.com/software-mansion/react-native-reanimated/pull/9703)'s `react-native-dotenv` case), and Vitest does not define it.
+React Native's own Jest setup calls the bare `jest`, so every project on its preset has it.
 
 `define: { "process.env.JEST_WORKER_ID": "undefined" }` in `vitest.config.ts` only lets 0.10.4 load:
 it reads `process.env.JEST_WORKER_ID` at runtime, and react-native-web Vite setups define `process.env` the same way.
