@@ -1,4 +1,4 @@
-# react-native-worklets swaps the browser's `requestAnimationFrame` under Vitest
+# react-native-worklets swaps `requestAnimationFrame` for a `setTimeout` under Vitest
 
 Since 0.11.0, `IS_JEST` is true when `process.env.NODE_ENV === 'test'`
 ([`platformChecker.ts`](https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-worklets/src/platformChecker.ts), from [software-mansion/react-native-reanimated#9703](https://github.com/software-mansion/react-native-reanimated/pull/9703)).
